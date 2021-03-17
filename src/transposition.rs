@@ -210,3 +210,44 @@ pub mod chord_transposer {
         return output_line;
     }
 }
+
+pub mod file_scanner {
+    use std::collections::HashMap;
+    use crate::transposition::chord_checker as cc;
+
+    #[derive(Ord,Eq,PartialOrd,PartialEq)]
+    struct ChordOrd {
+        quantity: u64,
+        chord: String
+    }
+
+    pub fn scan_file_for_chords(lines: Vec<String>) -> Vec<String> {
+        let mut hash_map: HashMap<String,u64> = HashMap::new();
+        let mut temp_vec: Vec<ChordOrd> = Vec::new();
+        let mut result_vec: Vec<String> = Vec::new();
+
+        for line in lines {
+            for word in line.split_whitespace() {
+                let word = word.to_string();
+                if cc::is_chord(&word) {
+                    let mut quantity = 1;
+                    if let Some(q) = hash_map.get(&word) { quantity = q+1; }
+                    hash_map.insert( word, quantity );
+                }
+            }
+        }
+
+        for (chord,quantity) in hash_map {
+            temp_vec.push( ChordOrd { chord:chord, quantity:quantity } );
+        }
+
+        temp_vec.sort();
+        temp_vec.reverse();
+
+        for item in temp_vec {
+            result_vec.push(item.chord);
+        }
+
+        return result_vec;
+    }
+}
