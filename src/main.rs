@@ -9,8 +9,10 @@ const DEBUG_MODE:bool = false;
 fn main() -> Result<(), ()> {
     if DEBUG_MODE { print_tests() }
 
+    let files = fscan::scan_dir();
+
     loop {
-        match io::loop_file_selection() {
+        match io::loop_file_selection(&files) {
             None => break,
             Some(filename) => {
 

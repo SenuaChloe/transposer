@@ -159,11 +159,11 @@ pub mod chord_transposer {
     use crate::transposition::false_positive_chord as fpc;
 
     //==============================================================================
-    fn transpose_note(note: &String, value: usize) -> String {
+    pub fn transpose_note(note: &String, value: u32) -> String {
         let transpo_circle = cc::compute_transposition_circle();
         for (i,x) in transpo_circle.iter().enumerate() {
             if x.contains(&note.as_str()) {
-                return transpo_circle[(i+value)%transpo_circle.len()][0].to_string();
+                return transpo_circle[(i+value as usize)%transpo_circle.len()][0].to_string();
             }
         }
         panic!("{} is obviously not a note!", note);
@@ -171,7 +171,7 @@ pub mod chord_transposer {
     }
 
     //==============================================================================
-    fn transpose_chord(chord: &String, value: usize) -> String {
+    fn transpose_chord(chord: &String, value: u32) -> String {
         let (note, ctype) = cc::split_chord(chord);
         let new_note = transpose_note(&note, value);
 
@@ -186,7 +186,7 @@ pub mod chord_transposer {
     }
 
     //==============================================================================
-    pub fn transpose_line(line: &String, value: usize) -> String {
+    pub fn transpose_line(line: &String, value: u32) -> String {
         let mut output_line = String::new();
         let mut input_line = line.clone();
 
@@ -212,9 +212,11 @@ pub mod chord_transposer {
 }
 
 //==============================================================================
+//==============================================================================
 pub mod file_scanner {
     use std::collections::HashMap;
     use crate::transposition::chord_checker as cc;
+    use std::fs;
 
     //==============================================================================
     const INPUT_SUBDIR: &str = "input/";
@@ -225,6 +227,17 @@ pub mod file_scanner {
     struct ChordOrd {
         quantity: u64,
         chord: String
+    }
+
+    //==============================================================================
+    pub fn scan_dir() -> Vec<String> {
+        let mut file_list: Vec<String> = Vec::new();
+        let file_paths = fs::read_dir(INPUT_SUBDIR).unwrap();
+        for path in file_paths {
+            file_list.push(path.unwrap().path().display().to_string());
+        }
+        file_list.sort();
+        return file_list;
     }
 
     //==============================================================================
