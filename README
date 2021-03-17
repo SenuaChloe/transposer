@@ -1,0 +1,12 @@
+Yo just put your input files in ./input/
+You can even make it a link to your lyrics folder.
+
+Results appear in ./output/, with the same name and the transposition value in it.
+
+### Depencies 
+crossterm (dependency resolved via github)
+
+### Build and run
+`cargo build` to build
+`cargo run` to run
+You must have cargo installed, obviously
