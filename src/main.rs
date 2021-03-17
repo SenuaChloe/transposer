@@ -1,10 +1,47 @@
 use transposer::transposition::chord_checker as cc;
 use transposer::transposition::false_positive_chord as fpc;
 use transposer::transposition::chord_transposer as ct;
-use transposer::ui;
+use transposer::transposition::file_scanner as fscan;
+use transposer::ui::io;
 
+const DEBUG_MODE:bool = false;
 
-fn main() {
+fn main() -> Result<(), ()> {
+    if DEBUG_MODE { print_tests() }
+
+    loop {
+        match io::loop_file_selection() {
+            None => break,
+            Some(filename) => {
+
+                let lines = fscan::break_file_into_lines(&filename);
+
+                let chord_list = fscan::scan_file_for_chords(&lines);
+
+                if let Some(transpo_value) = io::loop_transpo_selection(&chord_list) {
+                    
+                    let result = fscan::perform_transposition(&lines, transpo_value);
+
+                    let success = fscan::write_file(&filename, &result);
+
+                    if success {
+                        println!("Operation succeeded !");
+                        return Ok(());
+                    }
+                    else {
+                        println!("Operation failed !");
+                        return Err(());
+                    }
+                }
+            }
+        }
+    }
+    println!("Exiting program");
+    return Ok(());
+
+}
+
+fn print_tests() {
     println!("A {}", cc::is_chord(&"A".to_string()));
     println!("Bm {}", cc::is_chord(&"Bm".to_string()));
     println!("C#M {}", cc::is_chord(&"C#M".to_string()));

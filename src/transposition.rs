@@ -211,17 +211,30 @@ pub mod chord_transposer {
     }
 }
 
+//==============================================================================
 pub mod file_scanner {
     use std::collections::HashMap;
     use crate::transposition::chord_checker as cc;
 
+    //==============================================================================
+    const INPUT_SUBDIR: &str = "input/";
+    const OUTPUT_SUBDIR: &str = "output/";
+
+    //==============================================================================
     #[derive(Ord,Eq,PartialOrd,PartialEq)]
     struct ChordOrd {
         quantity: u64,
         chord: String
     }
 
-    pub fn scan_file_for_chords(lines: Vec<String>) -> Vec<String> {
+    //==============================================================================
+    pub fn break_file_into_lines(filename: &String) -> Vec<String> {
+        // TODO
+        return Vec::new();
+    }
+
+    //==============================================================================
+    pub fn scan_file_for_chords(lines: &Vec<String>) -> Vec<String> {
         let mut hash_map: HashMap<String,u64> = HashMap::new();
         let mut temp_vec: Vec<ChordOrd> = Vec::new();
         let mut result_vec: Vec<String> = Vec::new();
@@ -249,5 +262,17 @@ pub mod file_scanner {
         }
 
         return result_vec;
+    }
+
+    //==============================================================================
+    pub fn perform_transposition(lines: &Vec<String>, transposition_value: u32) -> Vec<String> {
+        // TODO
+        return Vec::new();
+    }
+
+    //==============================================================================
+    pub fn write_file(filename: &String, lines: &Vec<String>) -> bool {
+        // TODO
+        return true;
     }
 }
