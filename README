@@ -1,15 +1,20 @@
+########
 ### Instructions
 
 Yo just put your input files in ./input/
 You can even make it a link to your lyrics folder.
 
 Results appear in ./output/, with the same name and the transposition value in it.
+Existing files are overwritten (though different transposition level creates separate files).
+Spacing between chords MAY be different after the transposition occurs (byt only if the new chord is longer than the old one).
 
 You shall not use tabs or any other character than usual spaces in the lyrics files.
 
+########
 ### Depencies 
 crossterm (dependency resolved via github)
 
+########
 ### Build and run
 `cargo build` to build
 `cargo run` to run
