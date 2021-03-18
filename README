@@ -10,6 +10,8 @@ Spacing between chords MAY be different after the transposition occurs (byt only
 
 You shall not use tabs or any other character than usual spaces in the lyrics files.
 
+Note : you won't find any patchnote for this program because it's just not worth it.
+
 ########
 ### Depencies 
 crossterm (dependency resolved via github)
