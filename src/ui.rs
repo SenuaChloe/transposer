@@ -5,8 +5,8 @@
 pub mod io {
     use crossterm::cursor;
     use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyModifiers};
-    use crossterm::terminal::{Clear, ClearType};
-    use std::io::stdout;
+    use crossterm::terminal::{enable_raw_mode, disable_raw_mode, Clear, ClearType};
+    use std::io::{stdout, Write};
 
     use crate::transposition::chord_transposer as ct;
     
@@ -16,7 +16,6 @@ pub mod io {
         Previous,
         Cancel,
         Proceed,
-        None
     }
 
     //==============================================================================
@@ -26,23 +25,33 @@ pub mod io {
 
     //==============================================================================
     fn get_input_command() -> Command {
-        println!("");
-        println!("[Use arrows to navigate, Enter/Space to proceed, Escape/Backspace to cancel.]");
-        match read().unwrap() {
-            Event::Key(KeyEvent { code: KeyCode::Left, modifiers: KeyModifiers::NONE }) | 
-            Event::Key(KeyEvent { code: KeyCode::Down, modifiers: KeyModifiers::NONE }) 
-                => return Command::Previous,
-            Event::Key(KeyEvent { code: KeyCode::Right, modifiers: KeyModifiers::NONE }) | 
-            Event::Key(KeyEvent { code: KeyCode::Up, modifiers: KeyModifiers::NONE }) 
-                => return Command::Next,
-            Event::Key(KeyEvent { code: KeyCode::Esc, modifiers: KeyModifiers::NONE }) | 
-            Event::Key(KeyEvent { code: KeyCode::Backspace, modifiers: KeyModifiers::NONE }) 
-                => return Command::Cancel,
-            Event::Key(KeyEvent { code: KeyCode::Enter, modifiers: KeyModifiers::NONE }) | 
-            Event::Key(KeyEvent { code: KeyCode::Char(' '), modifiers: KeyModifiers::NONE }) 
-                => return Command::Proceed,
-            _ => return Command::None,
+        let cmd: Command;
+        println!();
+        println!();
+        print!("[Use arrows to navigate, Enter/Space to proceed, Escape/Backspace to cancel.] ");
+        stdout().flush().unwrap();
+        enable_raw_mode().unwrap();
+        loop {
+            match read().unwrap() {
+                Event::Key(KeyEvent { code: KeyCode::Left, modifiers: KeyModifiers::NONE }) | 
+                Event::Key(KeyEvent { code: KeyCode::Down, modifiers: KeyModifiers::NONE }) 
+                    => { cmd = Command::Previous; break },
+                Event::Key(KeyEvent { code: KeyCode::Right, modifiers: KeyModifiers::NONE }) | 
+                Event::Key(KeyEvent { code: KeyCode::Up, modifiers: KeyModifiers::NONE })
+                    => { cmd = Command::Next; break },
+                Event::Key(KeyEvent { code: KeyCode::Esc, modifiers: KeyModifiers::NONE }) | 
+                Event::Key(KeyEvent { code: KeyCode::Backspace, modifiers: KeyModifiers::NONE }) 
+                    => { cmd = Command::Cancel; break },
+                Event::Key(KeyEvent { code: KeyCode::Enter, modifiers: KeyModifiers::NONE }) | 
+                Event::Key(KeyEvent { code: KeyCode::Char(' '), modifiers: KeyModifiers::NONE }) 
+                    => { cmd = Command::Proceed; break },
+                _ => ()
+            }
         }
+        disable_raw_mode().unwrap();
+        println!();
+        println!();
+        return cmd;
     }
 
     //==============================================================================
@@ -70,24 +79,24 @@ pub mod io {
                 Command::Cancel => return None,
                 Command::Proceed => return Some(file_list[file_selection_index].clone()),
                 Command::Next => {
-                    if file_selection_index == file_list.len() { file_selection_index = 0 }
+                    if file_selection_index == file_list.len()-1 { file_selection_index = 0 }
                     else { file_selection_index += 1 }
                 },
                 Command::Previous => {
-                    if file_selection_index == 0 { file_selection_index = file_list.len() }
+                    if file_selection_index == 0 { file_selection_index = file_list.len()-1 }
                     else { file_selection_index -= 1 }
                 },
-                Command::None => {}
             }
         }
     }
 
     //==============================================================================
     fn print_transpo_selection(chords: &Vec<String>, transpo_value: u32) {
+        clear();
         println!("Please choose a transposition :");
-        println!("");
+        println!();
         print!("   [");
-        for index in 0..11 {
+        for index in 1..12 {
             if transpo_value == index {
                 print!("0");
             }
@@ -96,21 +105,23 @@ pub mod io {
             }
         }
         println!("]");
-        println!("   [ Capo {}{}    ]", transpo_value, if transpo_value >= 10 { " " } else { "" } );
-        println!("");
+        println!("   [ Capo {}{}   ]", transpo_value, if transpo_value >= 10 { "" } else { " " } );
+        println!();
         print!("     Original: ");
         for chord in chords {
             print!("{} ", chord);
         }
+        println!();
         print!("   Transposed: ");
         for chord in chords {
-            print!("{} ", ct::transpose_note(chord, transpo_value));
+            print!("{} ", ct::transpose_chord(chord, transpo_value));
         }
+        println!();
     }
 
     //==============================================================================
     pub fn loop_transpo_selection(chord_list: &Vec<String>) -> Option<u32> {
-        let mut transpo_value = 0;
+        let mut transpo_value = 1;
         loop {
             print_transpo_selection(chord_list, transpo_value);
 
@@ -118,14 +129,13 @@ pub mod io {
                 Command::Cancel => return None,
                 Command::Proceed => return Some(transpo_value),
                 Command::Next => {
-                    if transpo_value == 11 { transpo_value = 0 }
+                    if transpo_value == 11 { transpo_value = 1 }
                     else { transpo_value += 1 }
                 },
                 Command::Previous => {
-                    if transpo_value == 0 { transpo_value = 11 }
+                    if transpo_value == 1 { transpo_value = 11 }
                     else { transpo_value -= 1 }
                 },
-                Command::None => {}
             }
         }
     }

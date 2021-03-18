@@ -24,7 +24,7 @@ fn main() -> Result<(), ()> {
                     
                     let result = fscan::perform_transposition(&lines, transpo_value);
 
-                    let success = fscan::write_file(&filename, &result);
+                    let success = fscan::write_file(&result, &filename, transpo_value);
 
                     if success {
                         println!("Operation succeeded !");

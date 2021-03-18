@@ -159,7 +159,7 @@ pub mod chord_transposer {
     use crate::transposition::false_positive_chord as fpc;
 
     //==============================================================================
-    pub fn transpose_note(note: &String, value: u32) -> String {
+    fn transpose_note(note: &String, value: u32) -> String {
         let transpo_circle = cc::compute_transposition_circle();
         for (i,x) in transpo_circle.iter().enumerate() {
             if x.contains(&note.as_str()) {
@@ -171,7 +171,11 @@ pub mod chord_transposer {
     }
 
     //==============================================================================
-    fn transpose_chord(chord: &String, value: u32) -> String {
+    pub fn transpose_chord(chord: &String, value: u32) -> String {
+        if value == 0 {
+            return chord.clone();
+        }
+
         let (note, ctype) = cc::split_chord(chord);
         let new_note = transpose_note(&note, value);
 
@@ -216,7 +220,10 @@ pub mod chord_transposer {
 pub mod file_scanner {
     use std::collections::HashMap;
     use crate::transposition::chord_checker as cc;
+    use crate::transposition::chord_transposer as ct;
     use std::fs;
+    use std::fs::File;
+    use std::io::{self, BufRead, Write};
 
     //==============================================================================
     const INPUT_SUBDIR: &str = "input/";
@@ -234,7 +241,7 @@ pub mod file_scanner {
         let mut file_list: Vec<String> = Vec::new();
         let file_paths = fs::read_dir(INPUT_SUBDIR).unwrap();
         for path in file_paths {
-            file_list.push(path.unwrap().path().display().to_string());
+            file_list.push(path.unwrap().path().display().to_string().strip_prefix(INPUT_SUBDIR).unwrap().to_string());
         }
         file_list.sort();
         return file_list;
@@ -242,8 +249,20 @@ pub mod file_scanner {
 
     //==============================================================================
     pub fn break_file_into_lines(filename: &String) -> Vec<String> {
-        // TODO
-        return Vec::new();
+        let filepath = INPUT_SUBDIR.to_string()+filename;
+        let mut result: Vec<String> = Vec::new();
+
+        let file = File::open(&filepath);
+        if let Err(_) = file {
+            panic!("Unable to read file {}", &filepath);
+        }
+        let lines = io::BufReader::new(file.unwrap()).lines();
+        
+        for line in lines {
+            result.push(line.unwrap());
+        }
+
+        return result;
     }
 
     //==============================================================================
@@ -279,13 +298,35 @@ pub mod file_scanner {
 
     //==============================================================================
     pub fn perform_transposition(lines: &Vec<String>, transposition_value: u32) -> Vec<String> {
-        // TODO
-        return Vec::new();
+       let mut result = Vec::new();
+       for line in lines {
+           result.push(ct::transpose_line(line, transposition_value));
+       }
+       return result;
     }
 
     //==============================================================================
-    pub fn write_file(filename: &String, lines: &Vec<String>) -> bool {
-        // TODO
-        return true;
+    pub fn write_file(lines: &Vec<String>, filename: &String, transpo_value: u32) -> bool {
+        let new_filename: String;
+        let sfilename: Vec<&str> = filename.splitn(2, '.').collect();
+        if sfilename.len() == 2 {
+            new_filename = sfilename[0].to_string() + " - Capo " + &transpo_value.to_string() + "." + sfilename[1];
+        }
+        else {
+            new_filename = filename.to_string() + " - Capo " + &transpo_value.to_string();
+        }
+        let filepath = OUTPUT_SUBDIR.to_string() + &new_filename.to_string();
+        let output = File::create(filepath);
+      
+        match output {
+            Ok(mut fout) => {
+                for line in lines {
+                    let wres = writeln!(fout, "{}", line.as_str());
+                    if let Err(_) = wres { return false }
+                }
+                return true;
+            },
+            Err(_) => return false
+        }
     }
 }
