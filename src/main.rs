@@ -1,7 +1,7 @@
 use transposer::transposition::chord_checker as cc;
 use transposer::transposition::false_positive_chord as fpc;
 use transposer::transposition::chord_transposer as ct;
-use transposer::transposition::file_scanner as fscan;
+use transposer::file_manager::fman;
 use transposer::ui::io;
 
 const DEBUG_MODE:bool = false;
@@ -9,22 +9,22 @@ const DEBUG_MODE:bool = false;
 fn main() -> Result<(), ()> {
     if DEBUG_MODE { print_tests() }
 
-    let files = fscan::scan_dir();
+    let files = fman::scan_dir();
 
     loop {
         match io::loop_file_selection(&files) {
             None => break,
             Some(filename) => {
 
-                let lines = fscan::break_file_into_lines(&filename);
+                let lines = fman::break_file_into_lines(&filename);
 
-                let chord_list = fscan::scan_file_for_chords(&lines);
+                let chord_list = fman::scan_file_for_chords(&lines);
 
                 if let Some(transpo_value) = io::loop_transpo_selection(&chord_list) {
                     
-                    let result = fscan::perform_transposition(&lines, transpo_value);
+                    let result = fman::perform_transposition(&lines, transpo_value);
 
-                    let success = fscan::write_file(&result, &filename, transpo_value);
+                    let success = fman::write_file(&result, &filename, transpo_value);
 
                     if success {
                         println!("Operation succeeded !");
