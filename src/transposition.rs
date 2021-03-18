@@ -198,7 +198,8 @@ pub mod chord_transposer {
             fpc::process_implaced_line(&mut input_line);
         }
 
-        for word in line.split_whitespace() {
+        let words: Vec<&str> = line.split(' ').collect();
+        for word in words {
             let word = word.to_string();
             if cc::is_chord(&word) {
                 output_line.push_str(transpose_chord(&word, value).as_str());
