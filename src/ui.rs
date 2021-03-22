@@ -78,11 +78,11 @@ pub mod io {
             match get_input_command() {
                 Command::Cancel => return None,
                 Command::Proceed => return Some(file_list[file_selection_index].clone()),
-                Command::Next => {
+                Command::Previous => {
                     if file_selection_index == file_list.len()-1 { file_selection_index = 0 }
                     else { file_selection_index += 1 }
                 },
-                Command::Previous => {
+                Command::Next => {
                     if file_selection_index == 0 { file_selection_index = file_list.len()-1 }
                     else { file_selection_index -= 1 }
                 },
