@@ -4,19 +4,22 @@ use transposer::transposition::chord_transposer as ct;
 use transposer::file_manager::fman;
 use transposer::ui::io;
 
+//==============================================================================
+const INPUT_SUBDIR: &str = "input/";
+const OUTPUT_SUBDIR: &str = "output/";
 const DEBUG_MODE:bool = false;
 
 fn main() -> Result<(), ()> {
     if DEBUG_MODE { print_tests() }
 
-    let files = fman::scan_dir();
+    let files = fman::scan_dir(&INPUT_SUBDIR.to_string());
 
     loop {
         match io::loop_file_selection(&files) {
             None => break,
             Some(filename) => {
 
-                let lines = fman::break_file_into_lines(&filename);
+                let lines = fman::break_file_into_lines(&INPUT_SUBDIR.to_string(), &filename);
 
                 let chord_list = fman::scan_file_for_chords(&lines);
 
@@ -24,7 +27,7 @@ fn main() -> Result<(), ()> {
                     
                     let result = fman::perform_transposition(&lines, transpo_value);
 
-                    let success = fman::write_file(&result, &filename, transpo_value);
+                    let success = fman::write_file(&result, &OUTPUT_SUBDIR.to_string(), &filename, transpo_value);
 
                     if success {
                         println!("Operation succeeded !");

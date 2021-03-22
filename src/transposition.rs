@@ -190,6 +190,15 @@ pub mod chord_transposer {
     }
 
     //==============================================================================
+    fn add_spaces_to_match_length(item: &mut String, reference: &String) {
+        let from = item.len();
+        let to = reference.len();
+        for _ in from..to {
+            item.push(' ');
+        }
+    }
+
+    //==============================================================================
     pub fn transpose_line(line: &String, value: u32) -> String {
         let mut output_line = String::new();
         let mut input_line = line.clone();
@@ -198,11 +207,13 @@ pub mod chord_transposer {
             fpc::process_implaced_line(&mut input_line);
         }
 
-        let words: Vec<&str> = line.split(' ').collect();
+        let words: Vec<&str> = input_line.split(' ').collect();
         for word in words {
             let word = word.to_string();
             if cc::is_chord(&word) {
-                output_line.push_str(transpose_chord(&word, value).as_str());
+                let mut transposed_chord = transpose_chord(&word, value);
+                add_spaces_to_match_length(&mut transposed_chord, &word);
+                output_line.push_str(transposed_chord.as_str());
             }
             else {
                 output_line.push_str(word.as_str());
@@ -212,7 +223,7 @@ pub mod chord_transposer {
 
         fpc::restore_implaced_line(&mut output_line);
 
-        return output_line;
+        return output_line.strip_suffix(" ").unwrap().to_string();
     }
 }
 

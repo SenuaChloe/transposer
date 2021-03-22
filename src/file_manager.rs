@@ -5,13 +5,10 @@ pub mod fman {
     use std::collections::HashMap;
     use crate::transposition::chord_checker as cc;
     use crate::transposition::chord_transposer as ct;
+    use crate::transposition::false_positive_chord as fpc;
     use std::fs;
     use std::fs::File;
     use std::io::{self, BufRead, Write};
-
-    //==============================================================================
-    const INPUT_SUBDIR: &str = "input/";
-    const OUTPUT_SUBDIR: &str = "output/";
 
     //==============================================================================
     #[derive(Ord,Eq,PartialOrd,PartialEq)]
@@ -21,19 +18,20 @@ pub mod fman {
     }
 
     //==============================================================================
-    pub fn scan_dir() -> Vec<String> {
+    pub fn scan_dir(dirname: &String) -> Vec<String> {
         let mut file_list: Vec<String> = Vec::new();
-        let file_paths = fs::read_dir(INPUT_SUBDIR).unwrap();
+        let file_paths = fs::read_dir(dirname).unwrap();
         for path in file_paths {
-            file_list.push(path.unwrap().path().display().to_string().strip_prefix(INPUT_SUBDIR).unwrap().to_string());
+            file_list.push(path.unwrap().path().display().to_string().strip_prefix(dirname).unwrap().to_string());
         }
         file_list.sort();
         return file_list;
     }
 
     //==============================================================================
-    pub fn break_file_into_lines(filename: &String) -> Vec<String> {
-        let filepath = INPUT_SUBDIR.to_string()+filename;
+    pub fn break_file_into_lines(dirname: &String, filename: &String) -> Vec<String> {
+        let mut filepath = dirname.clone();
+        filepath += filename;
         let mut result: Vec<String> = Vec::new();
 
         let file = File::open(&filepath);
@@ -55,7 +53,11 @@ pub mod fman {
         let mut temp_vec: Vec<ChordOrd> = Vec::new();
         let mut result_vec: Vec<String> = Vec::new();
 
-        for line in lines {
+        for input_line in lines {
+            let mut line = input_line.clone();
+            if fpc::check_false_positive(&line) {
+                fpc::process_implaced_line(&mut line);
+            }
             for word in line.split_whitespace() {
                 let word = word.to_string();
                 if cc::is_chord(&word) {
@@ -90,7 +92,7 @@ pub mod fman {
     }
 
     //==============================================================================
-    pub fn write_file(lines: &Vec<String>, filename: &String, transpo_value: u32) -> bool {
+    pub fn write_file(lines: &Vec<String>, dirname: &String, filename: &String, transpo_value: u32) -> bool {
         let new_filename: String;
         let sfilename: Vec<&str> = filename.splitn(2, '.').collect();
         if sfilename.len() == 2 {
@@ -99,7 +101,8 @@ pub mod fman {
         else {
             new_filename = filename.to_string() + " - Capo " + &transpo_value.to_string();
         }
-        let filepath = OUTPUT_SUBDIR.to_string() + &new_filename.to_string();
+        let mut filepath = dirname.clone();
+        filepath += &new_filename.to_string();
         let output = File::create(filepath);
       
         match output {
